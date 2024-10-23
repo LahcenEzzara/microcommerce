@@ -44,59 +44,106 @@ The following dependencies are included in the project:
 
 ## API Endpoints
 
-### 1. List all products
+### 1. List all products - GET /products
 
-```http
-GET /products
-```
-
-**Example Request:**
 ```bash
 curl -X GET http://localhost:8080/products | jq
 ```
 
-### 2. Retrieve a specific product by ID
+### 2. Retrieve a specific product by ID - GET /products/{id}
 
-```http
-GET /products/{id}
-```
-
-**Example Request:**
 ```bash
 curl -X GET http://localhost:8080/products/1 | jq
 ```
 
-### 3. Add a new product
+### 3. Add a new product - POST /products
 
-```http
-POST /products
-```
-
-**Example Request:**
 ```bash
 curl -X POST http://localhost:8080/products -H "Content-Type: application/json" -d '{"id": 21, "name": "New Product", "price": 500}' | jq
 ```
 
-### 4. Update an existing product by ID
+### 4. Update an existing product by ID - PUT /products/{id}
 
-```http
-PUT /products/{id}
-```
-
-**Example Request:**
 ```bash
 curl -X PUT http://localhost:8080/products/1 -H "Content-Type: application/json" -d '{"id": 1, "name": "Updated Product", "price": 1600}' | jq
 ```
 
-### 5. Remove a product by ID
+### 5. Remove a product by ID - DELETE /products/{id}
 
-```http
-DELETE /products/{id}
-```
-
-**Example Request:**
 ```bash
 curl -X DELETE http://localhost:8080/products/1 | jq
+```
+
+## Docker Setup
+
+### Step 1: Create the JAR File
+
+To create a JAR file for the project, ensure you have [Maven](https://maven.apache.org/) installed. Then, navigate to the root of your project directory and run the following command:
+
+```bash
+cd microcommerce
+mvn clean package -DskipTests
+```
+
+After executing this command, the JAR file will be generated in the `target` directory, typically named `microcommerce-0.0.1-SNAPSHOT.jar`.
+
+### Step 2: Create a Docker Image
+
+To create a Docker image for your Spring Boot application, you need a `Dockerfile`. In the root of your project directory, create a file named `Dockerfile` with the following content:
+
+```dockerfile
+# Use a base image that includes Java
+FROM openjdk:17-jdk-slim
+
+# Set the working directory in the container
+WORKDIR /app
+
+# Copy the Maven build output (JAR file) to the container
+COPY target/microcommerce-0.0.1-SNAPSHOT.jar microcommerce.jar
+
+# Expose the application port
+EXPOSE 8080
+
+# Define the command to run the application
+ENTRYPOINT ["java", "-jar", "microcommerce.jar"]
+```
+
+Then, build the Docker image using the following command:
+
+```bash
+docker build -t microcommerce-image .
+```
+
+### Step 3: Create and Run a Docker Container
+
+Once the Docker image is built, you can create and run a Docker container using the following command:
+
+```bash
+docker run -d -p 8080:8080 --name microcommerce-container microcommerce-image
+```
+
+- This command will run the container in detached mode, mapping port 8080 on your host to port 8080 in the container.
+
+### Accessing the Application
+
+After the container is running, you can access the Spring Boot application at:
+
+```
+http://localhost:8080/products
+```
+
+### Stopping and Removing the Container
+
+To stop the running container, use the following command:
+
+```bash
+docker stop microcommerce-container
+```
+
+To remove the container, use:
+
+```bash
+docker rm microcommerce-container
 ```
 
 ## Contributing
@@ -106,4 +153,3 @@ Contributions are welcome! Please feel free to submit a pull request or open an 
 ## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-```
