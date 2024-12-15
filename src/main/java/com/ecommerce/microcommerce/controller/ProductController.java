@@ -1,38 +1,40 @@
-package com.ecommerce.microcommerce.web.controller;
+package com.ecommerce.microcommerce.controller;
 
 import com.ecommerce.microcommerce.dao.ProductDaoI;
-import com.ecommerce.microcommerce.model.Product;
-import org.springframework.beans.factory.annotation.Autowired;
+import com.ecommerce.microcommerce.entity.Product;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-@RestController
+@RestController("/products")
 public class ProductController {
 
-    @Autowired
-    private ProductDaoI productDao;
+    private final ProductDaoI productDao;
+
+    public ProductController(ProductDaoI productDao) {
+        this.productDao = productDao;
+    }
 
     // Get all products
-    @GetMapping("/products")
+    @GetMapping
     public List<Product> listProducts() {
         return productDao.findAll();
     }
 
     // Get a product by ID
-    @GetMapping("/products/{id}")
+    @GetMapping("{id}")
     public Product getProduct(@PathVariable int id) {
         return productDao.findById(id);
     }
 
     // Add a product
-    @PostMapping("/products")
+    @PostMapping
     public Product addProduct(@RequestBody Product product) {
         return productDao.save(product);
     }
 
     // Update a product
-    @PutMapping("/products/{id}")
+    @PutMapping("{id}")
     public Product updateProduct(@PathVariable int id, @RequestBody Product product) {
         Product existingProduct = productDao.findById(id);
         if (existingProduct != null) {
@@ -44,7 +46,7 @@ public class ProductController {
     }
 
     // Delete a product
-    @DeleteMapping("/products/{id}")
+    @DeleteMapping("{id}")
     public void deleteProduct(@PathVariable int id) {
         Product product = productDao.findById(id);
         if (product != null) {

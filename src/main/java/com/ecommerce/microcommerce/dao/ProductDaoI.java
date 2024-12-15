@@ -1,6 +1,6 @@
 package com.ecommerce.microcommerce.dao;
 
-import com.ecommerce.microcommerce.model.Product;
+import com.ecommerce.microcommerce.entity.Product;
 import org.springframework.stereotype.Repository;
 
 import java.util.ArrayList;
