@@ -10,4 +10,6 @@ public interface ProductDao {
     Product findById(int id);
 
     Product save(Product product);
+
+    void delete(Product product);
 }

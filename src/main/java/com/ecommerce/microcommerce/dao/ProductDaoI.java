@@ -5,10 +5,12 @@ import org.springframework.stereotype.Repository;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 
 @Repository
 public class ProductDaoI implements ProductDao {
-    public static List<Product> products = new ArrayList<>();
+    private static final List<Product> products = new ArrayList<>();
+    private static final AtomicInteger idCounter = new AtomicInteger(20); // Starting after the last ID
 
     static {
         products.add(new Product(1, "Laptop", 1500));
@@ -35,22 +37,36 @@ public class ProductDaoI implements ProductDao {
 
     @Override
     public List<Product> findAll() {
-        return products;
+        return new ArrayList<>(products);
     }
 
     @Override
     public Product findById(int id) {
-        for (Product product : products) {
-            if (product.getId() == id) {
-                return product;
-            }
-        }
-        return null;
+        return products.stream().filter(product -> product.getId() == id).findFirst().orElse(null);
     }
 
     @Override
     public Product save(Product product) {
-        products.add(product);
+        // If this is a new product (id is 0), generate a new ID
+        if (product.getId() == 0) {
+            product.setId(idCounter.incrementAndGet());
+            products.add(product);
+        } else {
+            // For updates, find and replace the existing product
+            Product existingProduct = findById(product.getId());
+            if (existingProduct != null) {
+                int index = products.indexOf(existingProduct);
+                products.set(index, product);
+            } else {
+                // If product with that ID doesn't exist, add as new
+                products.add(product);
+            }
+        }
         return product;
+    }
+
+    @Override
+    public void delete(Product product) {
+        products.remove(product);
     }
 }

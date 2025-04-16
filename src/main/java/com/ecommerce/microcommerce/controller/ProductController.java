@@ -2,11 +2,15 @@ package com.ecommerce.microcommerce.controller;
 
 import com.ecommerce.microcommerce.dao.ProductDaoI;
 import com.ecommerce.microcommerce.entity.Product;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
+import java.net.URI;
 import java.util.List;
 
 @RestController
+@RequestMapping("/products")
 public class ProductController {
 
     private final ProductDaoI productDao;
@@ -16,41 +20,56 @@ public class ProductController {
     }
 
     // Get all products
-    @GetMapping("/products")
-    public List<Product> listProducts() {
-        return productDao.findAll();
+    @GetMapping
+    public ResponseEntity<List<Product>> listProducts() {
+        List<Product> products = productDao.findAll();
+        return ResponseEntity.ok(products);
     }
 
     // Get a product by ID
-    @GetMapping("/products/{id}")
-    public Product getProduct(@PathVariable int id) {
-        return productDao.findById(id);
+    @GetMapping("/{id}")
+    public ResponseEntity<Product> getProduct(@PathVariable int id) {
+        Product product = productDao.findById(id);
+        if (product == null) {
+            return ResponseEntity.notFound().build();
+        }
+        return ResponseEntity.ok(product);
     }
 
     // Add a product
-    @PostMapping("/products")
-    public Product addProduct(@RequestBody Product product) {
-        return productDao.save(product);
+    @PostMapping
+    public ResponseEntity<Product> addProduct(@RequestBody Product product) {
+        Product savedProduct = productDao.save(product);
+
+        URI location = ServletUriComponentsBuilder.fromCurrentRequest().path("/{id}").buildAndExpand(savedProduct.getId()).toUri();
+
+        return ResponseEntity.created(location).body(savedProduct);
     }
 
     // Update a product
-    @PutMapping("/products/{id}")
-    public Product updateProduct(@PathVariable int id, @RequestBody Product product) {
+    @PutMapping("/{id}")
+    public ResponseEntity<Product> updateProduct(@PathVariable int id, @RequestBody Product product) {
         Product existingProduct = productDao.findById(id);
-        if (existingProduct != null) {
-            existingProduct.setName(product.getName());
-            existingProduct.setPrice(product.getPrice());
-            productDao.save(existingProduct);
+        if (existingProduct == null) {
+            return ResponseEntity.notFound().build();
         }
-        return existingProduct;
+
+        existingProduct.setName(product.getName());
+        existingProduct.setPrice(product.getPrice());
+        Product updatedProduct = productDao.save(existingProduct);
+
+        return ResponseEntity.ok(updatedProduct);
     }
 
     // Delete a product
-    @DeleteMapping("/products/{id}")
-    public void deleteProduct(@PathVariable int id) {
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteProduct(@PathVariable int id) {
         Product product = productDao.findById(id);
-        if (product != null) {
-            productDao.findAll().remove(product);
+        if (product == null) {
+            return ResponseEntity.notFound().build();
         }
+
+        productDao.delete(product);
+        return ResponseEntity.noContent().build();
     }
 }
